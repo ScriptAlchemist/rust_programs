@@ -1,6 +1,4 @@
-use std::env;
-use std::fs;
-use std::io;
+use std::io::{self, Read, Write};
 
 fn main() -> io::Result<()> {
     // Create a hash map mapping keywords to emoji characters
@@ -24,14 +22,9 @@ fn main() -> io::Result<()> {
     emoji.insert("skull", "💀");
     emoji.insert("wizard", "🧙");
 
-    // Get the input file name from the command line arguments
-    let file_name = env::args().nth(1).unwrap_or_else(|| {
-        println!("Usage: emoji_replacer INPUT_FILE");
-        std::process::exit(1);
-    });
-
-    // Read the input file
-    let input = fs::read_to_string(file_name.clone())?;
+    // Read input from standard input
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input)?;
 
     // Replace all occurrences of the keywords with the corresponding emoji characters
     let mut output = input;
@@ -39,8 +32,8 @@ fn main() -> io::Result<()> {
         output = output.replace(&format!(":{}:", keyword), emoji_char);
     }
 
-    // Write the modified text to the output file
-    fs::write(file_name, output)?;
+    // Write the modified text to standard output
+    io::stdout().write_all(output.as_bytes())?;
 
     Ok(())
 }
