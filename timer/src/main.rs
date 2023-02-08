@@ -1,4 +1,5 @@
 use std::{env, time::{Duration, Instant}};
+use winapi::um::consoleapi::Beep;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -49,4 +50,8 @@ fn main() {
         std::thread::sleep(Duration::from_secs(1));
     }
     println!("\nTimer ended");
+
+    unsafe {
+        Beep(1000, 500);
+    }
 }
