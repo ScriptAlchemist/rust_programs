@@ -1,19 +1,16 @@
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    event::{self, Event, KeyCode},
+    terminal::{disable_raw_mode, enable_raw_mode},
 };
-use std::{error::Error, env, time::{Duration, Instant}, io};
+use std::{env, time::{Duration, Instant}, io};
 use tui::{
-    backend::{Backend, CrosstermBackend},
-    layout::{Alignment, Constriant, Direction, Layout},
-    style::{Color, Modifier, Style},
-    text::Span,
-    widgets::{Block, BorderType, borders},
-    Frame, Terminal
+    backend::CrosstermBackend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Style},
+    widgets::{Block, Gauge},
+    Terminal
 };
 use winapi::um::utilapiset::Beep;
-
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -54,28 +51,57 @@ fn main() {
     let end = start + total_duration;
 
     // setup terminal
-    enable_raw_mode()
+    enable_raw_mode();
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend);
+    let mut terminal = Terminal::new(backend).unwrap();
+    terminal.clear().unwrap();
 
-
-    println!("Timer started for {:?}", total_duration);
     while Instant::now() < end {
         let remaining = end - Instant::now();
         let remaining_secs = remaining.as_secs();
         let remaining_hours = remaining_secs / 3600;
         let remaining_minutes = (remaining_secs % 3600) / 60;
         let remaining_seconds = remaining_secs % 60;
-        // TODO: This is where the printing is happening.
-        println!("\r{:02}h:{:02}m:{:02}s remaining", remaining_hours, remaining_minutes, remaining_seconds);
-        std::thread::sleep(Duration::from_secs(1));
-    }
+        let total_time_secs = total_duration.as_secs();
+        let elapsed_time_secs = total_time_secs - remaining_secs;
+        let elapsed_time_fraction = elapsed_time_secs as f64 / total_time_secs as f64;
 
-    unsafe {
-        Beep(440, 500);
-        Beep(400, 800);
-        Beep(440, 500);
-    }
-    println!("\nTimer ended");
+        let gauge = Gauge::default()
+            .block(Block::default().title("Elapsed Time"))
+            .style(Style::default().fg(Color::Yellow))
+            .ratio(elapsed_time_fraction)
+            .label(format!("{:02}h:{:02}m:{:02}s", remaining_hours, remaining_minutes, remaining_seconds));
+
+        if event::poll(Duration::from_millis(100)).unwrap() {
+            match event::read().unwrap() {
+                Event::Key(key) => {
+                    if key.code == KeyCode::Char('q') {
+                        disable_raw_mode();
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+				terminal.draw(|f| {
+								let size = f.size();
+								let layout = Layout::default()
+										.direction(Direction::Vertical)
+										.constraints([Constraint::Percentage(100)].as_ref())
+										.split(size);
+
+								f.render_widget(gauge, layout[0]);
+						}).unwrap();
+						std::thread::sleep(Duration::from_secs(1));
+				}
+
+				unsafe {
+						Beep(440, 500);
+						Beep(400, 800);
+						Beep(440, 500);
+				}
+        disable_raw_mode();
+				println!("\nTimer ended");
 }
+
