@@ -21,6 +21,8 @@ fn main() -> io::Result<()> {
     emoji.insert("puke", "🤢");
     emoji.insert("skull", "💀");
     emoji.insert("wizard", "🧙");
+    emoji.insert("redX", "❌");
+    emoji.insert("checkmark", "✅");
 
     // Read input from standard input
     let mut input = String::new();

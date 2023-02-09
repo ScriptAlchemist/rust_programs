@@ -1,5 +1,17 @@
-use std::{io, env, time::{Duration, Instant}};
-use tui::{backend::CrosstermBackend, Terminal};
+use crossterm::{
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use std::{error::Error, env, time::{Duration, Instant}, io};
+use tui::{
+    backend::{Backend, CrosstermBackend},
+    layout::{Alignment, Constriant, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::Span,
+    widgets::{Block, BorderType, borders},
+    Frame, Terminal
+};
 use winapi::um::utilapiset::Beep;
 
 
@@ -41,6 +53,8 @@ fn main() {
     let start = Instant::now();
     let end = start + total_duration;
 
+    // setup terminal
+    enable_raw_mode()
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend);
