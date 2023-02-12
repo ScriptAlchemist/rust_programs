@@ -23,6 +23,8 @@ fn main() -> io::Result<()> {
     emoji.insert("wizard", "🧙");
     emoji.insert("redX", "❌");
     emoji.insert("checkmark", "✅");
+    emoji.insert("lock", "🔐");
+    emoji.insert("bluedot", "🔵");
 
     // Read input from standard input
     let mut input = String::new();
