@@ -13,7 +13,8 @@ fn toduck(file_path: &str) -> io::Result<()> {
         if let Some(capture) = line.find("[") {
             let end = line[capture..].find("]()").unwrap() + capture;
             let text = &line[capture + 1..end];
-            output.push_str(&format!("{}[{}]({}{})", &line[..capture], text, duck, text));
+            let url_text = text.replace(" ", "%20");
+            output.push_str(&format!("{}[{}]({}{})", &line[..capture], text, duck, url_text));
         } else {
             output.push_str(&line);
         }
