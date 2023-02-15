@@ -1,39 +1,21 @@
-use std::fs::File;
-use std::io::{self, BufRead, BufReader, Write};
-use std::env;
+use std::fs;
+use regex::Regex;
 
-fn toduck(file_path: &str) -> io::Result<()> {
-    let duck = "https://lite.duckduckgo.com/lite?kd=-1&kp=-1&q=";
-    let file = File::open(file_path)?;
-    let reader = BufReader::new(file);
-    let mut output = String::new();
+fn main() -> std::io::Result<()> {
 
-    for line in reader.lines() {
-        let line = line?;
-        if let Some(capture) = line.find("[") {
-            let end = line[capture..].find("]()").unwrap() + capture;
-            let text = &line[capture + 1..end];
-            let url_text = text.replace(" ", "%20");
-            output.push_str(&format!("{}[{}]({}{})", &line[..capture], text, duck, url_text));
-        } else {
-            output.push_str(&line);
-        }
-        output.push_str("\n");
-    }
+  // Read input from the file
+  let input = fs::read_to_string(std::env::args().nth(1).unwrap())?;
 
-    let mut file = File::create(file_path)?;
-    file.write_all(output.as_bytes())?;
+  // Replace all occurrences of [word thing]() with [word thing]("https://lite.duckduckgo.com/lite?kd=-1&kp=-1&q=word%20thing")
+  let re = Regex::new(r"\[([^\]]+)\]\(\)").unwrap();
+  let output = re.replace_all(&input, |caps: &regex::Captures| {
+      let word = caps.get(1).unwrap().as_str();
+      format!("[{}](https://lite.duckduckgo.com/lite?kd=-1&kp=-1&q={})", word, word.replace(" ", "%20"))
+  });
 
-    Ok(())
-}
+  // Write the modified text back to the file
+  fs::write(std::env::args().nth(1).unwrap(), output.to_string())?;
 
-fn main() {
-    if let Some(file_path) = env::args().nth(1) {
-        if let Err(err) = toduck(&file_path) {
-            eprintln!("Error: {}", err);
-        }
-    } else {
-        eprintln!("Usage: toduck <file>");
-    }
+  Ok(())
 }
 
