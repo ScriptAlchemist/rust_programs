@@ -1,3 +1,5 @@
 snp/target/**
 timer/target/**
-win-timer/**
+win-timer/target/**
+toduck/target/**
+toemoji/target/**

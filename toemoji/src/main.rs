@@ -1,8 +1,9 @@
-use std::io::{self, Read, Write};
+use std::collections::HashMap;
+use std::fs;
 
-fn main() -> io::Result<()> {
+fn main() -> std::io::Result<()> {
     // Create a hash map mapping keywords to emoji characters
-    let mut emoji = std::collections::HashMap::new();
+    let mut emoji = HashMap::new();
     emoji.insert("smile", "😃");
     emoji.insert("bear", "🐻");
     emoji.insert("hamburger", "🍔");
@@ -26,9 +27,8 @@ fn main() -> io::Result<()> {
     emoji.insert("lock", "🔐");
     emoji.insert("bluedot", "🔵");
 
-    // Read input from standard input
-    let mut input = String::new();
-    io::stdin().read_to_string(&mut input)?;
+    // Read input from the file
+    let input = fs::read_to_string(std::env::args().nth(1).unwrap())?;
 
     // Replace all occurrences of the keywords with the corresponding emoji characters
     let mut output = input;
@@ -36,8 +36,8 @@ fn main() -> io::Result<()> {
         output = output.replace(&format!(":{}:", keyword), emoji_char);
     }
 
-    // Write the modified text to standard output
-    io::stdout().write_all(output.as_bytes())?;
+    // Write the modified text back to the file
+    fs::write(std::env::args().nth(1).unwrap(), output)?;
 
     Ok(())
 }
