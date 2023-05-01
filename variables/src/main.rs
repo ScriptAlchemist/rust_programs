@@ -1,58 +1,54 @@
 #![crate_name = "what"]
 
-fn main() {
-    let c = "Z";
-    let z: char = 'Z';
-    let equal_or_not = c == z.to_string();
-    println!("Is {} and {} equal? {}", z, c, equal_or_not);
+/// The Vector of numbers represented here
+pub struct Array {
+    /// The Array of numbers to iterate over
+    num: Vec<i32>,
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-pub struct Number {
-    number: i32,
-}
-
-impl Number {
-
-    pub fn new(num: i32) -> Number {
-        Number {
-            number: num,
+impl Array {
+    /// # Example
+    ///
+    /// ```
+    /// use what::Array;
+    /// let new_array = Array::new([1, 2, 3, 4].to_vec());
+    /// ```
+    pub fn new(numbers: Vec<i32>) -> Array {
+        Array {
+            num: numbers,
         }
     }
-    pub fn add_five(&self) -> i32 {
-        self.number + 5
+    /// Example
+    /// ```
+    /// use what::Array;
+    /// let new_array = Array::new([1, 2, 3, 4].to_vec());
+    /// assert_eq!(new_array.skip_two(), vec![&3, &4]);
+    /// ```
+    pub fn skip_two(&self) -> Vec<&i32> {
+        self.num.iter().skip(2).collect::<Vec<_>>()
+    }
+    /// Example
+    /// ```
+    /// use what::Array;
+    /// let new_array = Array::new([1, 2, 3, 4].to_vec());
+    /// assert_eq!(new_array.skip_odd(), vec![&2, &4]);
+    /// ```
+    pub fn  skip_odd(&self) -> Vec<&i32> {
+        self.num.iter().filter(|i| *i % 2 == 0).collect::<Vec<_>>()
+    }
+
+    pub fn print_it(&self) {
+        println!("{:?}", self.num);
     }
 }
 
-
+#[allow(dead_code)]
 fn main() {
-    let the_num = Number::new(5);
-    println!("Add Five: {}", the_num.add_five());
+    let first_array = Array::new([1, 2, 3, 4].to_vec());
+    first_array.print_it();
+    // Skip the first 2 items
+    let skipped_two = first_array.skip_two();
+    println!("{:?}", skipped_two); // [3, 4]
+    let skipped_odd = first_array.skip_odd();
+    println!("{:?}", skipped_odd); // [3, 4]
 }
-
-
-
-struct QuitMessage; // unit struct
-struct MoveMessage {
-    x: i32,
-    y: i32,
-}
-struct WriteMessage(String); // tuple struct
-struct ChangeColorMessage(i32, i32, i32); // tuple struct
-*/

@@ -5,3 +5,5 @@ toduck/target/**
 toemoji/target/**
 lynx/target/**
 lynxhyp/target/**/*
+mutability_play/target/**/*
+variables/target/**/*
