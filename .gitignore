@@ -7,3 +7,5 @@ lynx/target/**
 lynxhyp/target/**/*
 mutability_play/target/**/*
 variables/target/**/*
+rustegan/target/**/*
+rustegan/target/*

@@ -3,49 +3,37 @@ use std::io::{StdoutLock, Write};
 use serde::{Serialize, Deserialize};
 use anyhow::{Context, bail};
 
-// Both STDIN and STDOUT messages are JSON objects, separated by newlines `\n`.
-// Each messages objects is of the form
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct Message {
-    src: String,
+pub struct Message<Payload> {
+    pub src: String,
     #[serde(rename = "dest")]
-    dst: String,
-    body: Body,
+    pub dst: String,
+    pub body: Body<Payload>,
 }
 
-// RPC messages exchanged with Maelstrom's clients have bodies with the following reserved keys:
-// Messages IDs should be unique on the node which sent them. For instance, each node can use
-// a monotonically increasing integer as their source of message IDs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct Body {
+pub struct Body<Payload> {
     #[serde(rename = "msg_id")]
-    id: Option<usize>,
-    in_reply_to: Option<usize>,
+    pub id: Option<usize>,
+    pub in_reply_to: Option<usize>,
     #[serde(flatten)]
-    payload: Payload,
+    pub payload: Payload,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
-#[serde(rename_all = "snake_case")]
-enum Payload {
-    Echo { echo: String },
-    EchoOk { echo: String },
-    Init {
-        node_id: String,
-        node_ids: Vec<String>,
-    },
-    InitOk,
+struct Init {
+    pub node_id: String,
+    pub node_ids: Vec<String>,
 }
 
-struct EchoNode {
+pub struct Node {
     id: usize,
 }
 
 impl EchoNode {
     pub fn step(
         &mut self,
-        input: Message,
+        input: Message<Payload>,
         output: &mut StdoutLock
     ) -> anyhow::Result<()> {
         match input.body.payload {
@@ -87,7 +75,7 @@ impl EchoNode {
 
 fn main() -> anyhow::Result<()> {
     let stdin = std::io::stdin().lock();
-    let inputs = serde_json::Deserializer::from_reader(stdin).into_iter::<Message>();
+    let inputs = serde_json::Deserializer::from_reader(stdin).into_iter::<Message<Payload>>();
 
     let mut stdout = std::io::stdout().lock();
 
