@@ -9,3 +9,5 @@ mutability_play/target/**/*
 variables/target/**/*
 rustegan/target/**/*
 rustegan/target/*
+ownership_play/target/**/*
+ownership_play/target/*
