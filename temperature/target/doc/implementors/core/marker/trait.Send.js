@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"temps":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a> for <a class=\"enum\" href=\"temps/enum.TempType.html\" title=\"enum temps::TempType\">TempType</a>",1,["temps::TempType"]],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a> for <a class=\"struct\" href=\"temps/struct.Temperature.html\" title=\"struct temps::Temperature\">Temperature</a>",1,["temps::Temperature"]]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
