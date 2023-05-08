@@ -1,10 +1,10 @@
 #[allow(dead_code)]
 
 /// TempType is the temperature type with a f64 value for the temperature it includes
-/// Celcius, Fahrenheit and Kelvin
+/// Celsius, Fahrenheit and Kelvin
 #[derive(Debug)]
 pub enum TempType {
-    Celcius(f64),
+    Celsius(f64),
     Fahrenheit(f64),
     Kelvin(f64),
 }
@@ -18,30 +18,91 @@ pub struct Temperature {
 /// Temperature implementation
 impl Temperature {
 
-    pub fn new(temp_type: TempType) -> Temperature {
+    /// Create a new temp structure with an internal temperature inside
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use temps::{Temperature, TempType};
+    /// let celsius_temp = Temperature::new(TempType::Celsius(43_f64));
+    /// let fahrenheit_temp = Temperature::new(TempType::Fahrenheit(43_f64));
+    /// let kelvin_temp = Temperature::new(TempType::Kelvin(43_f64));
+    ///
+    /// match celsius_temp.t {
+    ///   TempType::Celsius(temp) => assert_eq!(temp, 43_f64),
+    ///   _ => panic!("Should be Celsius"),
+    /// }
+    ///
+    /// match fahrenheit_temp.t {
+    ///   TempType::Fahrenheit(temp) => assert_eq!(temp, 43_f64),
+    ///   _ => panic!("Should be Fahrenheit"),
+    /// }
+    ///
+    /// match kelvin_temp.t {
+    ///   TempType::Kelvin(temp) => assert_eq!(temp, 43_f64),
+    ///   _ => panic!("Should be Kelvin"),
+    /// }
+    ///
+    /// ```
+    pub fn new(temp_type: TempType) -> Self {
         Temperature {
             t: temp_type,
         }
     }
 
-    pub fn switch_to_celcius(&self) -> Temperature {
+    /// Convert your existing Temperature into Celsius
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use temps::{Temperature, TempType};
+    /// let celsius_temp = Temperature::new(TempType::Celsius(43_f64));
+    /// let fahrenheit_temp = Temperature::new(TempType::Fahrenheit(43_f64));
+    /// let kelvin_temp = Temperature::new(TempType::Kelvin(43_f64));
+    ///
+    /// let celsius_to_celsius = celsius_temp.switch_to_celsius();
+    /// let fahrenheit_to_celsius = fahrenheit_temp.switch_to_celsius();
+    /// let kelvin_to_celsius = kelvin_temp.switch_to_celsius();
+    ///
+    /// // Check celsius switch to celsius
+    /// match (celsius_temp.t, celsius_to_celsius.t) {
+    ///   (TempType::Celsius(val1), TempType::Celsius(val2)) => {
+    ///     assert_eq!(val1 == val2, true)
+    ///   }
+    ///   _ => panic!("Needs to be Celsius TempType"),
+    /// };
+    ///
+    /// // Check fahrenheit switch to celsius
+    /// match fahrenheit_to_celsius.t {
+    ///   TempType::Celsius(temp) => assert_eq!(temp, 6.111111111111111),
+    ///   _ => panic!("Needs to be Celsius TempType"),
+    /// };
+    ///
+    /// // Check kelvin switch to celsius
+    /// match kelvin_to_celsius.t {
+    ///   TempType::Celsius(temp) => assert_eq!(temp, -230.14999999999998),
+    ///   _ => panic!("Needs to be Celsius TempType"),
+    /// };
+    ///
+    /// ```
+    pub fn switch_to_celsius(&self) -> Self {
         match self.t {
-            TempType::Celcius(temp) => {
-                Temperature::new(TempType::Celcius(temp))
+            TempType::Celsius(temp) => {
+                Temperature::new(TempType::Celsius(temp))
             }
             TempType::Fahrenheit(temp) => {
-                Temperature::new(TempType::Celcius(fahrenheit_to_celcius(temp)))
+                Temperature::new(TempType::Celsius(fahrenheit_to_celsius(temp)))
             }
             TempType::Kelvin(temp) => {
-                Temperature::new(TempType::Celcius(kelvin_to_celcius(temp)))
+                Temperature::new(TempType::Celsius(kelvin_to_celsius(temp)))
             }
         }
     }
 
-    pub fn switch_to_fahrenheit(&self) -> Temperature {
+    pub fn switch_to_fahrenheit(&self) -> Self {
         match self.t {
-            TempType::Celcius(temp) => {
-                Temperature::new(TempType::Fahrenheit(celcius_to_fahrenheit(temp)))
+            TempType::Celsius(temp) => {
+                Temperature::new(TempType::Fahrenheit(celsius_to_fahrenheit(temp)))
             }
             TempType::Fahrenheit(temp) => {
                 Temperature::new(TempType::Fahrenheit(temp))
@@ -52,10 +113,10 @@ impl Temperature {
         }
     }
 
-    pub fn switch_to_kelvin(&self) -> Temperature {
+    pub fn switch_to_kelvin(&self) -> Self {
         match self.t {
-            TempType::Celcius(temp) => {
-                Temperature::new(TempType::Kelvin(celcius_to_kelvin(temp)))
+            TempType::Celsius(temp) => {
+                Temperature::new(TempType::Kelvin(celsius_to_kelvin(temp)))
             }
             TempType::Fahrenheit(temp) => {
                 Temperature::new(TempType::Kelvin(fahrenheit_to_kelvin(temp)))
@@ -69,13 +130,13 @@ impl Temperature {
 
 // Private Conversions
 
-/// Celcius to Kelvin conversion calculation
-fn celcius_to_kelvin(temp: f64) -> f64 {
+/// Celsius to Kelvin conversion calculation
+fn celsius_to_kelvin(temp: f64) -> f64 {
     temp + 273.15
 }
 
-/// Kelvin to Celcius conversion calculation
-fn kelvin_to_celcius(temp: f64) -> f64 {
+/// Kelvin to Celsius conversion calculation
+fn kelvin_to_celsius(temp: f64) -> f64 {
     temp - 273.15
 }
 
@@ -89,13 +150,13 @@ fn kelvin_to_fahrenheit(temp: f64) -> f64 {
     (temp - 273.15) * 9.0/5.0 + 32.0
 }
 
-/// Celcius to Fahrenheit conversion calculation
-fn celcius_to_fahrenheit(temp: f64) -> f64 {
+/// Celsius to Fahrenheit conversion calculation
+fn celsius_to_fahrenheit(temp: f64) -> f64 {
     (temp * 9.0/5.0) + 32.0
 }
 
-/// Fahrenheit to Celcius conversion calculation
-fn fahrenheit_to_celcius(temp: f64) -> f64 {
+/// Fahrenheit to Celsius conversion calculation
+fn fahrenheit_to_celsius(temp: f64) -> f64 {
     (temp - 32.0) * 5.0/9.0
 }
 
@@ -105,15 +166,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_celcius_to_kelvin() {
+    fn test_celsius_to_kelvin() {
         assert_eq!(fahrenheit_to_kelvin(32.0), 273.15);
         assert_eq!(fahrenheit_to_kelvin(97.0), 309.26111111111106);
     }
 
     #[test]
-    fn test_kelvin_to_celcius () {
-        assert_eq!(kelvin_to_celcius(273.15), 0.0);
-        assert_eq!(kelvin_to_celcius(0.2453234532), -272.9046765468);
+    fn test_kelvin_to_celsius () {
+        assert_eq!(kelvin_to_celsius(273.15), 0.0);
+        assert_eq!(kelvin_to_celsius(0.2453234532), -272.9046765468);
     }
 
     #[test]
@@ -129,15 +190,15 @@ mod tests {
     }
 
     #[test]
-    fn test_celcius_to_fahrenheit() {
-        assert_eq!(celcius_to_fahrenheit(34.0), 93.2);
-        assert_eq!(celcius_to_fahrenheit(93.0), 199.4);
+    fn test_celsius_to_fahrenheit() {
+        assert_eq!(celsius_to_fahrenheit(34.0), 93.2);
+        assert_eq!(celsius_to_fahrenheit(93.0), 199.4);
     }
 
     #[test]
-    fn test_fahrenheit_to_celcius() {
-        assert_eq!(fahrenheit_to_celcius(34.0), 1.1111111111111112);
-        assert_eq!(fahrenheit_to_celcius(92.0), 33.333333333333336);
+    fn test_fahrenheit_to_celsius() {
+        assert_eq!(fahrenheit_to_celsius(34.0), 1.1111111111111112);
+        assert_eq!(fahrenheit_to_celsius(92.0), 33.333333333333336);
     }
 }
 

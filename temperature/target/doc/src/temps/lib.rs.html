@@ -141,18 +141,79 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
 </pre><pre class="rust"><code><span class="attr">#[allow(dead_code)]
 
 </span><span class="doccomment">/// TempType is the temperature type with a f64 value for the temperature it includes
-/// Celcius, Fahrenheit and Kelvin
+/// Celsius, Fahrenheit and Kelvin
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>TempType {
-    Celcius(f64),
+    Celsius(f64),
     Fahrenheit(f64),
     Kelvin(f64),
 }
 
-<span class="doccomment">/// Temperature structure with internal temp t
+<span class="doccomment">/// Temperature structure with internal temp t.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Temperature {
     <span class="kw">pub </span>t: TempType,
@@ -161,30 +222,91 @@
 <span class="doccomment">/// Temperature implementation
 </span><span class="kw">impl </span>Temperature {
 
-    <span class="kw">pub fn </span>new(temp_type: TempType) -&gt; Temperature {
+    <span class="doccomment">/// Create a new temp structure with an internal temperature inside
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use temps::{Temperature, TempType};
+    /// let celsius_temp = Temperature::new(TempType::Celsius(43_f64));
+    /// let fahrenheit_temp = Temperature::new(TempType::Fahrenheit(43_f64));
+    /// let kelvin_temp = Temperature::new(TempType::Kelvin(43_f64));
+    ///
+    /// match celsius_temp.t {
+    ///   TempType::Celsius(temp) =&gt; assert_eq!(temp, 43_f64),
+    ///   _ =&gt; panic!(&quot;Should be Celsius&quot;),
+    /// }
+    ///
+    /// match fahrenheit_temp.t {
+    ///   TempType::Fahrenheit(temp) =&gt; assert_eq!(temp, 43_f64),
+    ///   _ =&gt; panic!(&quot;Should be Fahrenheit&quot;),
+    /// }
+    ///
+    /// match kelvin_temp.t {
+    ///   TempType::Kelvin(temp) =&gt; assert_eq!(temp, 43_f64),
+    ///   _ =&gt; panic!(&quot;Should be Kelvin&quot;),
+    /// }
+    ///
+    /// ```
+    </span><span class="kw">pub fn </span>new(temp_type: TempType) -&gt; <span class="self">Self </span>{
         Temperature {
             t: temp_type,
         }
     }
 
-    <span class="kw">pub fn </span>switch_to_celcius(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Temperature {
+    <span class="doccomment">/// Convert your existing Temperature into Celsius
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use temps::{Temperature, TempType};
+    /// let celsius_temp = Temperature::new(TempType::Celsius(43_f64));
+    /// let fahrenheit_temp = Temperature::new(TempType::Fahrenheit(43_f64));
+    /// let kelvin_temp = Temperature::new(TempType::Kelvin(43_f64));
+    ///
+    /// let celsius_to_celsius = celsius_temp.switch_to_celsius();
+    /// let fahrenheit_to_celsius = fahrenheit_temp.switch_to_celsius();
+    /// let kelvin_to_celsius = kelvin_temp.switch_to_celsius();
+    ///
+    /// // Check celsius switch to celsius
+    /// match (celsius_temp.t, celsius_to_celsius.t) {
+    ///   (TempType::Celsius(val1), TempType::Celsius(val2)) =&gt; {
+    ///     assert_eq!(val1 == val2, true)
+    ///   }
+    ///   _ =&gt; panic!(&quot;Needs to be Celsius TempType&quot;),
+    /// };
+    ///
+    /// // Check fahrenheit switch to celsius
+    /// match fahrenheit_to_celsius.t {
+    ///   TempType::Celsius(temp) =&gt; assert_eq!(temp, 6.111111111111111),
+    ///   _ =&gt; panic!(&quot;Needs to be Celsius TempType&quot;),
+    /// };
+    ///
+    /// // Check kelvin switch to celsius
+    /// match kelvin_to_celsius.t {
+    ///   TempType::Celsius(temp) =&gt; assert_eq!(temp, -230.14999999999998),
+    ///   _ =&gt; panic!(&quot;Needs to be Celsius TempType&quot;),
+    /// };
+    ///
+    /// ```
+    </span><span class="kw">pub fn </span>switch_to_celsius(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="self">self</span>.t {
-            TempType::Celcius(temp) =&gt; {
-                Temperature::new(TempType::Celcius(temp))
+            TempType::Celsius(temp) =&gt; {
+                Temperature::new(TempType::Celsius(temp))
             }
             TempType::Fahrenheit(temp) =&gt; {
-                Temperature::new(TempType::Celcius(fahrenheit_to_celcius(temp)))
+                Temperature::new(TempType::Celsius(fahrenheit_to_celsius(temp)))
             }
             TempType::Kelvin(temp) =&gt; {
-                Temperature::new(TempType::Celcius(kelvin_to_celcius(temp)))
+                Temperature::new(TempType::Celsius(kelvin_to_celsius(temp)))
             }
         }
     }
 
-    <span class="kw">pub fn </span>switch_to_fahrenheit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Temperature {
+    <span class="kw">pub fn </span>switch_to_fahrenheit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="self">self</span>.t {
-            TempType::Celcius(temp) =&gt; {
-                Temperature::new(TempType::Fahrenheit(celcius_to_fahrenheit(temp)))
+            TempType::Celsius(temp) =&gt; {
+                Temperature::new(TempType::Fahrenheit(celsius_to_fahrenheit(temp)))
             }
             TempType::Fahrenheit(temp) =&gt; {
                 Temperature::new(TempType::Fahrenheit(temp))
@@ -195,10 +317,10 @@
         }
     }
 
-    <span class="kw">pub fn </span>switch_to_kelvin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Temperature {
+    <span class="kw">pub fn </span>switch_to_kelvin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="self">self</span>.t {
-            TempType::Celcius(temp) =&gt; {
-                Temperature::new(TempType::Kelvin(celcius_to_kelvin(temp)))
+            TempType::Celsius(temp) =&gt; {
+                Temperature::new(TempType::Kelvin(celsius_to_kelvin(temp)))
             }
             TempType::Fahrenheit(temp) =&gt; {
                 Temperature::new(TempType::Kelvin(fahrenheit_to_kelvin(temp)))
@@ -212,13 +334,13 @@
 
 <span class="comment">// Private Conversions
 
-</span><span class="doccomment">/// Celcius to Kelvin conversion calculation
-</span><span class="kw">fn </span>celcius_to_kelvin(temp: f64) -&gt; f64 {
+</span><span class="doccomment">/// Celsius to Kelvin conversion calculation
+</span><span class="kw">fn </span>celsius_to_kelvin(temp: f64) -&gt; f64 {
     temp + <span class="number">273.15
 </span>}
 
-<span class="doccomment">/// Kelvin to Celcius conversion calculation
-</span><span class="kw">fn </span>kelvin_to_celcius(temp: f64) -&gt; f64 {
+<span class="doccomment">/// Kelvin to Celsius conversion calculation
+</span><span class="kw">fn </span>kelvin_to_celsius(temp: f64) -&gt; f64 {
     temp - <span class="number">273.15
 </span>}
 
@@ -232,13 +354,13 @@
     (temp - <span class="number">273.15</span>) * <span class="number">9.0</span>/<span class="number">5.0 </span>+ <span class="number">32.0
 </span>}
 
-<span class="doccomment">/// Celcius to Fahrenheit conversion calculation
-</span><span class="kw">fn </span>celcius_to_fahrenheit(temp: f64) -&gt; f64 {
+<span class="doccomment">/// Celsius to Fahrenheit conversion calculation
+</span><span class="kw">fn </span>celsius_to_fahrenheit(temp: f64) -&gt; f64 {
     (temp * <span class="number">9.0</span>/<span class="number">5.0</span>) + <span class="number">32.0
 </span>}
 
-<span class="doccomment">/// Fahrenheit to Celcius conversion calculation
-</span><span class="kw">fn </span>fahrenheit_to_celcius(temp: f64) -&gt; f64 {
+<span class="doccomment">/// Fahrenheit to Celsius conversion calculation
+</span><span class="kw">fn </span>fahrenheit_to_celsius(temp: f64) -&gt; f64 {
     (temp - <span class="number">32.0</span>) * <span class="number">5.0</span>/<span class="number">9.0
 </span>}
 
@@ -248,15 +370,15 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_celcius_to_kelvin() {
+    </span><span class="kw">fn </span>test_celsius_to_kelvin() {
         <span class="macro">assert_eq!</span>(fahrenheit_to_kelvin(<span class="number">32.0</span>), <span class="number">273.15</span>);
         <span class="macro">assert_eq!</span>(fahrenheit_to_kelvin(<span class="number">97.0</span>), <span class="number">309.26111111111106</span>);
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_kelvin_to_celcius () {
-        <span class="macro">assert_eq!</span>(kelvin_to_celcius(<span class="number">273.15</span>), <span class="number">0.0</span>);
-        <span class="macro">assert_eq!</span>(kelvin_to_celcius(<span class="number">0.2453234532</span>), -<span class="number">272.9046765468</span>);
+    </span><span class="kw">fn </span>test_kelvin_to_celsius () {
+        <span class="macro">assert_eq!</span>(kelvin_to_celsius(<span class="number">273.15</span>), <span class="number">0.0</span>);
+        <span class="macro">assert_eq!</span>(kelvin_to_celsius(<span class="number">0.2453234532</span>), -<span class="number">272.9046765468</span>);
     }
 
     <span class="attr">#[test]
@@ -272,15 +394,15 @@
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_celcius_to_fahrenheit() {
-        <span class="macro">assert_eq!</span>(celcius_to_fahrenheit(<span class="number">34.0</span>), <span class="number">93.2</span>);
-        <span class="macro">assert_eq!</span>(celcius_to_fahrenheit(<span class="number">93.0</span>), <span class="number">199.4</span>);
+    </span><span class="kw">fn </span>test_celsius_to_fahrenheit() {
+        <span class="macro">assert_eq!</span>(celsius_to_fahrenheit(<span class="number">34.0</span>), <span class="number">93.2</span>);
+        <span class="macro">assert_eq!</span>(celsius_to_fahrenheit(<span class="number">93.0</span>), <span class="number">199.4</span>);
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_fahrenheit_to_celcius() {
-        <span class="macro">assert_eq!</span>(fahrenheit_to_celcius(<span class="number">34.0</span>), <span class="number">1.1111111111111112</span>);
-        <span class="macro">assert_eq!</span>(fahrenheit_to_celcius(<span class="number">92.0</span>), <span class="number">33.333333333333336</span>);
+    </span><span class="kw">fn </span>test_fahrenheit_to_celsius() {
+        <span class="macro">assert_eq!</span>(fahrenheit_to_celsius(<span class="number">34.0</span>), <span class="number">1.1111111111111112</span>);
+        <span class="macro">assert_eq!</span>(fahrenheit_to_celsius(<span class="number">92.0</span>), <span class="number">33.333333333333336</span>);
     }
 }
 
