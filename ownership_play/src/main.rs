@@ -1,10 +1,11 @@
 fn main() {
-    let mut s = String::from("hello");
-    let mut literal_s = "hello";
+    let s1 = String::from("hello");
+    let literal_s_1 = "hello";
+    let s2 = s1.clone();
+    let literal_s_2 = literal_s_1;
 
-    s.push_str(", world!");
-    literal_s.push_str(", world!");
-
-    println!("String: {}", s);
-    println!("String literal: {}", literal_s);
+    println!("String 1: {}", s1);
+    println!("String 2: {}", s2);
+    println!("String literal 1: {}", literal_s_1);
+    println!("String literal 2: {}", literal_s_2);
 }
