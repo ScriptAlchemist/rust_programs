@@ -11,3 +11,5 @@ rustegan/target/**/*
 rustegan/target/*
 ownership_play/target/**/*
 ownership_play/target/*
+temperature/target/*
+temperature/target/**/*
