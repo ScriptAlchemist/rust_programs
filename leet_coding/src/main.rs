@@ -7,7 +7,8 @@
 //mod reverse_integer;
 //mod string_to_integer_atoi;
 //mod palindrome_number;
-mod regular_expression_matching;
+//mod regular_expression_matching;
+mod length_of_longest_substring;
 
 fn main() {
     println!("Leet Code Playing, cargo test is what you want");
