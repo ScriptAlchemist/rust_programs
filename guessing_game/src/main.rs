@@ -1,6 +1,4 @@
-use cursive::Cursive;
-use cursive::views::{Button, Dialog, DummyView, EditView,
-                     LinearLayout, SelectView};
+use cursive::views::{Button, Dialog, DummyView, LinearLayout};
 use cursive::traits::*;
 use cursive::theme::{BorderStyle, Palette};
 

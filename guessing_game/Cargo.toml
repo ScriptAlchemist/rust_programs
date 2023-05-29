@@ -7,8 +7,4 @@ edition = "2021"
 crossterm = "0.26.1"
 lazy_static = "1.4.0"
 rand = "0.8.5"
-
-[dependencies.cursive]
-cursive = "0.20.0"
-default-features = false
-features = ["crossterm-backend"]
+cursive = { version = "0.20.0", default-features = false, features = ["crossterm-backend"] }
