@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 crossterm = "0.26.1"
 lazy_static = "1.4.0"
+rand = "0.8.5"
 
 [dependencies.cursive]
 cursive = "0.20.0"

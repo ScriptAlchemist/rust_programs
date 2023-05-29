@@ -1,7 +1,10 @@
-use cursive::theme::{BorderStyle, Palette};
-use cursive::traits::With;
-use cursive::views::Dialog;
 use cursive::Cursive;
+use cursive::views::{Button, Dialog, DummyView, EditView,
+                     LinearLayout, SelectView};
+use cursive::traits::*;
+use cursive::theme::{BorderStyle, Palette};
+
+mod help;
 
 fn main() {
     // Creates the cursive root - required for every application.
@@ -9,7 +12,7 @@ fn main() {
 
     siv.set_theme(cursive::theme::Theme{
         shadow: false,
-        borders: BorderStyle::Simple,
+        borders: BorderStyle::None,
         palette: Palette::retro().with(|palette| {
             use cursive::theme::BaseColor::*;
             {
@@ -34,62 +37,26 @@ fn main() {
         }),
     });
 
+    // Quit from anywhere using q
     siv.add_global_callback('q', |s| s.quit());
-    siv.add_layer(Dialog::text("This is a guessing game!\nPress <Next> when you're ready.\n\nCheck <Open Directions> to learn how to play the game\n\n")
-        .title("Guessing Game")
-        .button("Next", show_next)
-        .button("Open Directions", show_dialog)
-        .button("Quit",  |s| s.quit()));
 
-    // siv.add_layer(TextView::new("Hello Cursive! Press <q> to quit."));
+    let welcome_screen = LinearLayout::vertical()
+        .child(Dialog::text("This is a guessing game!\nPress <Next> when you're ready.\n\nCheck <Open Directions> to learn how to play the game\n\n"));
+
+    let start_buttons = LinearLayout::vertical()
+        .child(DummyView)
+        .child(DummyView)
+        .child(Button::new("Next", help::show_next))
+        .child(DummyView)
+        .child(Button::new("Open Directions", help::show_rules))
+        .child(DummyView)
+        .child(Button::new("Quit", |s| s.quit()));
+
+    siv.add_layer(Dialog::around(LinearLayout::horizontal()
+            .child(welcome_screen)
+            .child(DummyView)
+            .child(start_buttons))
+        .title("Guessing Game"));
 
     siv.run();
-}
-
-fn show_dialog(s: &mut cursive::Cursive) {
-
-    s.add_layer(Dialog::info("The rules of this game are simple.\n\nThis is a guessing game.\n\nYou will have to select a difficulty (East, Medium, or Hard).\n\nEasy is a choice between 1-20\n\nMedium is a choice between 1-50\n\nHard is a choice between 1-100 with only 5 guesses possible").title("Game Directions"));
-}
-
-fn show_next(s: &mut Cursive) {
-    s.pop_layer();
-    s.add_layer(Dialog::text("Select a difficulty (East, Medium, or Hard).\n\nEasy is a choice between 1-20\n\nMedium is a choice between 1-50\n\nHard is a choice between 1-100 with only 5 guesses possible")
-        .title("Pick a level")
-        .button("Easy", try_easy_guess)
-        .button("Medium", try_medium_guess)
-        .button("Hard", try_hard_guess));
-}
-
-fn try_easy_guess(s: &mut Cursive) {
-    s.pop_layer();
-    s.add_layer(Dialog::text("Playing Easy Mode")
-        .title("Take your guess!")
-        .button("Guess", you_win)
-        .button("Quit", |s| s.quit()));
-
-}
-
-fn try_medium_guess(s: &mut Cursive) {
-    s.pop_layer();
-    s.add_layer(Dialog::text("Playing Medium Mode")
-        .title("Take your guess!")
-        .button("Guess", you_win)
-        .button("Finish", |s| s.quit()));
-
-}
-
-fn try_hard_guess(s: &mut Cursive) {
-    s.pop_layer();
-    s.add_layer(Dialog::text("Playing Hard Mode")
-        .title("Take your guess!")
-        .button("Guess", you_win)
-        .button("Finish", |s| s.quit()));
-
-}
-fn you_win(s: &mut Cursive) {
-    s.pop_layer();
-    s.add_layer(Dialog::text("")
-        .title("You win!")
-        .button("Finish", |s| s.quit()));
-
 }
