@@ -175,9 +175,9 @@ fn try_hard_guess(s: &mut Cursive, number: Option<u8>, retry: GuessHeat, tries_l
     };
 
     let text = match retry {
-        GuessHeat::NoGuess => "guess a number between 1 and 100\n\n",
-        GuessHeat::Higher => "Incorrect guess is to high.\n\nTry again, guess a lower number between 1 and 100\n\n",
-        GuessHeat::Lower => "Incorrect guess is to low.\n\nTry again, guess a higher number between 1 and 100\n\nMake sure you're guessing a number\n\n",
+        GuessHeat::NoGuess => format!("Guess a number between 1 and 100\n\nTries left: {}", tries_left),
+        GuessHeat::Higher => format!("Incorrect guess is to high.\n\nTry again, guess a lower number between 1 and 100\n\nTries left: {}", tries_left),
+        GuessHeat::Lower => format!("Incorrect guess is to low.\n\nTry again, guess a higher number between 1 and 100\n\nMake sure you're guessing a number\n\nTries left: {}", tries_left),
     };
 
     let layout = LinearLayout::vertical()
