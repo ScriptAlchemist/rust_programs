@@ -27,3 +27,5 @@ blog_date/target/**/*
 blog_date/target/*
 new_post/target/**/*
 new_post/target/*
+open_last/target/**/*
+open_last/target/*
