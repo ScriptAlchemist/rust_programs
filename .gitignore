@@ -21,3 +21,9 @@ rscmt/target/**/*
 rscmt/target/*
 variables/target/**/*
 variables/target/*
+guessing_game/target/*
+guessing_game/target/**/*
+blog_date/target/**/*
+blog_date/target/*
+new_post/target/**/*
+new_post/target/*
