@@ -19,13 +19,13 @@ fn main() -> Result<(), std::io::Error> {
     let content = format!(r#"---
 title: ''
 excerpt: ''
-coverImage: '/assets/blog/'
+coverImage: '/assets/blog/img_bin/'
 date: '{}'
 author:
   name: Justin Bender
-  picture: '/assets/blog/authors/Bender.png'
+  picture: '/assets/blog/authors/bender.png'
 ogImage:
-  url: '/assets/blog/'
+  url: '/assets/blog/img_bin/'
 ---
 
 ## Title
