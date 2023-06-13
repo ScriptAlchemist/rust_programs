@@ -1,6 +1,4 @@
 use std::fs;
-#[cfg(unix)]
-use std::os::unix::fs::MetadataExt;
 use std::process::Command;
 use std::time::SystemTime;
 
@@ -18,6 +16,7 @@ fn main() -> std::io::Result<()> {
         .map(|(path, _)| path);
 
     if let Some(newest_file_path) = entry {
+        println!("File path: {:?}", newest_file_path);
 
         #[cfg(windows)]
         let mut child = Command::new("vim.bat")
@@ -26,7 +25,7 @@ fn main() -> std::io::Result<()> {
             .expect("Failed to open file in Vim");
 
         #[cfg(unix)]
-        let mut child = Command::new("vim.exe")
+        let mut child = Command::new("vim")
             .arg(newest_file_path)
             .spawn()
             .expect("Failed to open file in Vim");
