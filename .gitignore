@@ -51,3 +51,8 @@ serde-whatnow/target/**/*
 strsplit/target/**/*
 trash/target/**/*
 twitter_challenges/target/**/*
+builder_patterns/target/**/*
+dag_one/target/**/*
+builder_patterns/target/*
+dag_one/target/*
+

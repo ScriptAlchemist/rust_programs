@@ -1,0 +1,17 @@
+[package]
+name = "cursive_test"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crossterm = "0.26.1"
+lazy_static = "1.4.0"
+rand = "0.8.5"
+
+[dependencies.cursive]
+cursive = "0.20.0"
+default-features = false
+features = ["crossterm-backend"]
+

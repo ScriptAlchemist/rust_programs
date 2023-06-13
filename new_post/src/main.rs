@@ -22,7 +22,7 @@ excerpt: ''
 coverImage: '/assets/blog/img_bin/'
 date: '{}'
 author:
-  name: Justin Bender
+  name: 'Justin Bender'
   picture: '/assets/blog/authors/bender.png'
 ogImage:
   url: '/assets/blog/img_bin/'
