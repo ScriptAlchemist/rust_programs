@@ -35,7 +35,14 @@ ogImage:
     file.write_all(content.as_bytes())?;
 
     // Open Vim
+    #[cfg(windows)]
     let mut child = Command::new("vim.bat")
+        .arg(&filename)
+        .spawn()
+        .expect("Failed to open file in Vim");
+
+    #[cfg(unix)]
+    let mut child = Command::new("vim")
         .arg(&filename)
         .spawn()
         .expect("Failed to open file in Vim");
