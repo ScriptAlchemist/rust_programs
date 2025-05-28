@@ -3,9 +3,10 @@ name = "timer"
 version = "0.1.0"
 edition = "2021"
 
-[target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["utilapiset"] }
+[target.'cfg(dawrwin)'.dependencies]
+winapi = { version = "0.3.9", features = ["utilapiset"] }
 
 [dependencies]
 tui = "0.19.0"
 crossterm = "0.25"
+winapi = "0.3.9"

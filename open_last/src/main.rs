@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
             .expect("Failed to open file in Vim");
 
         #[cfg(unix)]
-        let mut child = Command::new("vim")
+        let mut child = Command::new("nvim")
             .arg(newest_file_path)
             .spawn()
             .expect("Failed to open file in Vim");

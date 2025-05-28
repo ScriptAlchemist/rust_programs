@@ -1,3 +1,5 @@
+concurrency/target/**/*
+concurrency/target/*
 snp/target/**
 timer/target/**
 win-timer/target/**
@@ -55,4 +57,3 @@ builder_patterns/target/**/*
 dag_one/target/**/*
 builder_patterns/target/*
 dag_one/target/*
-
