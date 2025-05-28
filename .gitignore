@@ -1,3 +1,5 @@
+ppp/target/**/*
+ppp/target/*
 concurrency/target/**/*
 concurrency/target/*
 snp/target/**
