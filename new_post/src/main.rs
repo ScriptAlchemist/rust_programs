@@ -17,6 +17,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use rfd::FileDialog;
 
 #[derive(Debug, Clone)]
 struct BlogPost {
@@ -41,10 +42,19 @@ impl Default for BlogPost {
 enum AppState {
     TitleInput,
     ExcerptInput,
+    ImageSelectionMenu,
     ImageSelection,
+    OgImageSelectionMenu,
     OgImageSelection,
     Confirmation,
     Error(String),
+}
+
+#[derive(Debug, PartialEq)]
+enum ImageMenuOption {
+    BrowseExternal,
+    SelectFromFolder,
+    Skip,
 }
 
 #[derive(Debug)]
@@ -59,6 +69,8 @@ struct App {
     image_list_state: ListState,
     og_image_files: Vec<PathBuf>,
     og_image_list_state: ListState,
+    image_menu_selection: usize,
+    og_image_menu_selection: usize,
     show_help: bool,
 }
 
@@ -78,6 +90,8 @@ impl App {
             image_list_state: ListState::default(),
             og_image_files,
             og_image_list_state: ListState::default(),
+            image_menu_selection: 0,
+            og_image_menu_selection: 0,
             show_help: false,
         })
     }
@@ -87,8 +101,14 @@ impl App {
             AppState::TitleInput | AppState::ExcerptInput => {
                 self.handle_text_input(key)
             }
+            AppState::ImageSelectionMenu => {
+                self.handle_image_menu(key, true)
+            }
             AppState::ImageSelection => {
                 self.handle_image_selection(key)
+            }
+            AppState::OgImageSelectionMenu => {
+                self.handle_image_menu(key, false)
             }
             AppState::OgImageSelection => {
                 self.handle_og_image_selection(key)
@@ -120,12 +140,7 @@ impl App {
                             self.blog_post.excerpt = self.input_buffer.trim().to_string();
                             self.input_buffer.clear();
                             self.cursor_position = 0;
-                            if !self.image_files.is_empty() {
-                                self.image_list_state.select(Some(0));
-                                self.state = AppState::ImageSelection;
-                            } else {
-                                self.state = AppState::Confirmation;
-                            }
+                            self.state = AppState::ImageSelectionMenu;
                         }
                         _ => {}
                     }
@@ -179,6 +194,76 @@ impl App {
         }
     }
 
+    fn handle_image_menu(&mut self, key: KeyCode, is_cover_image: bool) -> io::Result<bool> {
+        let menu_selection = if is_cover_image { &mut self.image_menu_selection } else { &mut self.og_image_menu_selection };
+        
+        match key {
+            KeyCode::Up | KeyCode::Char('k') => {
+                if *menu_selection > 0 {
+                    *menu_selection -= 1;
+                }
+                Ok(false)
+            }
+            KeyCode::Down | KeyCode::Char('j') => {
+                if *menu_selection < 2 {
+                    *menu_selection += 1;
+                }
+                Ok(false)
+            }
+            KeyCode::Enter => {
+                match *menu_selection {
+                    0 => { // Browse External
+                        if let Some(selected_file) = browse_for_image() {
+                            let copied_path = copy_image_to_pictures(&selected_file, &self.pictures_dir)?;
+                            if is_cover_image {
+                                self.blog_post.cover_image = copied_path;
+                                self.state = AppState::OgImageSelectionMenu;
+                            } else {
+                                self.blog_post.og_image = copied_path;
+                                self.state = AppState::Confirmation;
+                            }
+                        }
+                        Ok(false)
+                    }
+                    1 => { // Select from Folder
+                        if is_cover_image {
+                            if !self.image_files.is_empty() {
+                                self.image_list_state.select(Some(0));
+                                self.state = AppState::ImageSelection;
+                            } else {
+                                self.state = AppState::OgImageSelectionMenu;
+                            }
+                        } else {
+                            if !self.og_image_files.is_empty() {
+                                self.og_image_list_state.select(Some(0));
+                                self.state = AppState::OgImageSelection;
+                            } else {
+                                self.state = AppState::Confirmation;
+                            }
+                        }
+                        Ok(false)
+                    }
+                    2 => { // Skip
+                        if is_cover_image {
+                            self.state = AppState::OgImageSelectionMenu;
+                        } else {
+                            self.blog_post.og_image = self.blog_post.cover_image.clone();
+                            self.state = AppState::Confirmation;
+                        }
+                        Ok(false)
+                    }
+                    _ => Ok(false)
+                }
+            }
+            KeyCode::Esc | KeyCode::Char('q') => Ok(true),
+            KeyCode::F(1) => {
+                self.show_help = !self.show_help;
+                Ok(false)
+            }
+            _ => Ok(false),
+        }
+    }
+
     fn handle_image_selection(&mut self, key: KeyCode) -> io::Result<bool> {
         match key {
             KeyCode::Up | KeyCode::Char('k') => {
@@ -205,13 +290,13 @@ impl App {
                         self.blog_post.cover_image = format!("/assets/blog/img_bin/{}", filename);
                         
                         self.og_image_list_state.select(Some(selected));
-                        self.state = AppState::OgImageSelection;
+                        self.state = AppState::OgImageSelectionMenu;
                     }
                 }
                 Ok(false)
             }
             KeyCode::Char('s') => {
-                self.state = AppState::Confirmation;
+                self.state = AppState::OgImageSelectionMenu;
                 Ok(false)
             }
             KeyCode::Esc | KeyCode::Char('q') => Ok(true),
@@ -366,9 +451,15 @@ fn ui(f: &mut Frame, app: &mut App) {
     match app.state {
         AppState::TitleInput => render_text_input(f, chunks[1], app, "Title", "Enter your blog post title:"),
         AppState::ExcerptInput => render_text_input(f, chunks[1], app, "Excerpt", "Enter a brief excerpt for your post:"),
+        AppState::ImageSelectionMenu => {
+            render_image_menu(f, chunks[1], "Cover Image Selection", app.image_menu_selection, &app.image_files);
+        }
         AppState::ImageSelection => {
             let files = &app.image_files;
             render_image_selection(f, chunks[1], "Cover Image", files, &mut app.image_list_state);
+        }
+        AppState::OgImageSelectionMenu => {
+            render_image_menu(f, chunks[1], "OG Image Selection", app.og_image_menu_selection, &app.og_image_files);
         }
         AppState::OgImageSelection => {
             let files = &app.og_image_files;
@@ -382,6 +473,9 @@ fn ui(f: &mut Frame, app: &mut App) {
     let help_text = match app.state {
         AppState::TitleInput | AppState::ExcerptInput => {
             "Enter: Submit | Esc/q: Quit | F1: Help"
+        }
+        AppState::ImageSelectionMenu | AppState::OgImageSelectionMenu => {
+            "↑↓/jk: Navigate | Enter: Select | Esc/q: Quit | F1: Help"
         }
         AppState::ImageSelection | AppState::OgImageSelection => {
             "↑↓/jk: Navigate | Enter: Select | s: Skip | Esc/q: Quit | F1: Help"
@@ -447,6 +541,30 @@ fn render_image_selection(f: &mut Frame, area: Rect, title: &str, files: &[PathB
         .highlight_symbol("► ");
 
     f.render_stateful_widget(list, area, list_state);
+}
+
+fn render_image_menu(f: &mut Frame, area: Rect, title: &str, selection: usize, existing_files: &[PathBuf]) {
+    let file_count = existing_files.len();
+    let menu_items = vec![
+        format!("📁 Browse for new image..."),
+        format!("🖼️  Select from existing ({} files)", file_count),
+        format!("⏭️  Skip (use default)"),
+    ];
+
+    let items: Vec<ListItem> = menu_items
+        .iter()
+        .map(|item| ListItem::new(item.as_str()))
+        .collect();
+
+    let list = List::new(items)
+        .block(Block::default().borders(Borders::ALL).title(title))
+        .style(Style::default().fg(Color::White))
+        .highlight_style(Style::default().fg(Color::Black).bg(Color::Yellow))
+        .highlight_symbol("► ");
+
+    let mut list_state = ListState::default();
+    list_state.select(Some(selection));
+    f.render_stateful_widget(list, area, &mut list_state);
 }
 
 fn render_confirmation(f: &mut Frame, area: Rect, app: &App) {
@@ -620,4 +738,25 @@ fn open_in_zed(file_path: &Path) -> io::Result<()> {
 
     let _ = child.wait();
     Ok(())
+}
+
+fn browse_for_image() -> Option<PathBuf> {
+    FileDialog::new()
+        .set_title("Select Image")
+        .add_filter("Images", &["jpg", "jpeg", "png", "gif", "webp", "svg"])
+        .pick_file()
+}
+
+fn copy_image_to_pictures(source: &Path, pictures_dir: &Path) -> io::Result<String> {
+    let filename = source.file_name()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Invalid filename"))?
+        .to_string_lossy();
+    
+    let dest_path = pictures_dir.join(filename.as_ref());
+    
+    // Copy the image to the pictures directory
+    fs::copy(source, &dest_path)?;
+    
+    // Return the relative path for use in markdown
+    Ok(format!("/assets/blog/img_bin/{}", filename))
 }

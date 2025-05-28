@@ -5,6 +5,7 @@ A Rust-based command-line tool for generating blog post markdown files with inte
 ## Features
 
 - Interactive Terminal User Interface (TUI) for all inputs
+- Dual image selection: file picker popup OR browse existing folder
 - Vim-like navigation for image selection
 - Automatic timestamp-based filename generation
 - Environment variable configuration for post and image directories
@@ -53,8 +54,11 @@ The tool will guide you through a beautiful TUI interface:
 
 1. **Title Input**: Type your blog post title directly in the terminal
 2. **Excerpt Input**: Type a brief excerpt for your post
-3. **Cover Image Selection**: Browse and select from existing images with vim-like navigation (j/k or ↑↓)
-4. **OG Image Selection**: Choose a different image or use the same one (s to skip/use same)
+3. **Cover Image Menu**: Choose how to select your cover image:
+   - 📁 Browse for new image (opens file picker popup)
+   - 🖼️ Select from existing folder (shows images in `$JUST_IN_PICTURES`)
+   - ⏭️ Skip (use default path)
+4. **OG Image Menu**: Same options for Open Graph image
 5. **Confirmation Screen**: Review all details before creating the post
 6. **File Generation**: Creates a markdown file with timestamp-based filename
 7. **Auto-open**: Opens the generated file in Zed editor
@@ -129,11 +133,26 @@ The interface provides intuitive navigation:
 - Press Enter to submit and move to next field
 - Press Esc or q to quit at any time
 
-**Image Selection:**
+**Image Selection Workflow:**
+
+*Image Menu (appears for both cover and OG images):*
+- Use ↑↓ arrow keys or j/k to navigate menu options
+- Press Enter to select:
+  - **Browse for new image**: Opens native file picker to choose any image file
+  - **Select from existing**: Browse images already in `$JUST_IN_PICTURES` folder
+  - **Skip**: Use default path or same image as cover
+
+*When browsing existing folder:*
 - Use ↑↓ arrow keys or j/k (vim-style) to navigate
 - Press Enter to select highlighted image
-- Press s to skip and use default path
+- Press s to skip and return to menu
 - Images are automatically discovered from `$JUST_IN_PICTURES`
+
+*File picker (when browsing external):*
+- Native file dialog opens outside terminal
+- Select any image file (jpg, jpeg, png, gif, webp, svg)
+- Image is automatically copied to `$JUST_IN_PICTURES`
+- Path is automatically added to the blog post front matter
 
 **General Navigation:**
 - F1: Toggle help screen
