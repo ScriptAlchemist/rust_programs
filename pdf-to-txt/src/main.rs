@@ -38,6 +38,7 @@ struct PageInfo {
     fonts: BTreeSet<String>,
     xobjects: BTreeSet<String>,
     images: Vec<ImageInfo>,
+    text: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -53,7 +54,7 @@ struct ImageInfo {
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("Usage: pdf-introspect <file.pdf>");
+        eprintln!("Usage: pdf-to-txt <file.pdf>");
         std::process::exit(1);
     }
     let path = &args[1];
@@ -222,6 +223,7 @@ fn introspect_page(doc: &Document, page_id: ObjectId, page_num: u32) -> Result<P
         fonts,
         xobjects,
         images,
+        text: doc.extract_text(&[page_num]).ok(),
     })
 }
 
