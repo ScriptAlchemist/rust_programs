@@ -1,0 +1,9 @@
+# Cargo.toml
+[package]
+name = "pdf-to-txt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+lopdf = "0.38.0"

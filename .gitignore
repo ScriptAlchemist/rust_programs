@@ -1,3 +1,5 @@
+pdf-to-txt/target/**/*
+pdf-to-txt/targt/*
 ppp/target/**/*
 ppp/target/*
 concurrency/target/**/*
