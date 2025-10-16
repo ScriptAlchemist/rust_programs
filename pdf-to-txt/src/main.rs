@@ -60,6 +60,13 @@ fn main() -> Result<()> {
     let path = &args[1];
 
     let doc = Document::load(path)?;
+    // println!("{:?}", doc.bookmarks);
+    // doc.replace_text("Hello", "World");
+    // for i in 1..=10 {
+    //     if let Ok(obj) = doc.get_object((i, 0)) {
+    //         println!("Successfully accessed object ({}, 0): {:?}", i, obj);
+    //     }
+    // }
 
     // page_num -> ObjectId
     let pages = doc.get_pages();
