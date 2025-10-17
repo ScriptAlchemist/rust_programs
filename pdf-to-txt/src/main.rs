@@ -1,23 +1,17 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::Parser;
 use lopdf::Document;
 use std::collections::HashMap;
 use std::fs;
+use std::path::Path;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    /// The PDF file to extract text from
     input_file: String,
-
-    /// The file to write the extracted text to
     output_file: Option<String>,
-
-    /// The page to start extraction from
     #[arg(short, long)]
     start: Option<u32>,
-
-    /// The page to end extraction at
     #[arg(short, long)]
     end: Option<u32>,
 }
@@ -25,8 +19,16 @@ struct Cli {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
+    let in_path = Path::new(&cli.input_file);
+    if in_path.extension().and_then(std::ffi::OsStr::to_str) != Some("pdf") {
+        return Err(anyhow!("Input file must be a PDF with a .pdf extension."));
+    }
+
     let inpdf = &cli.input_file;
-    let out_path = cli.output_file.unwrap_or_else(|| "out.txt".to_string());
+    let out_path = cli
+        .output_file
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| in_path.with_extension("txt"));
     let start_page_arg = cli.start;
     let end_page_arg = cli.end;
 
@@ -57,7 +59,7 @@ fn main() -> Result<()> {
     let cleaned_text = clean_text(&all_text);
 
     fs::write(&out_path, cleaned_text)?;
-    println!("Wrote {}", out_path);
+    println!("Wrote {}", out_path.to_string_lossy());
 
     Ok(())
 }
