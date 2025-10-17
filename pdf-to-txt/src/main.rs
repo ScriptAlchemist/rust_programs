@@ -1,51 +1,28 @@
-use anyhow::{anyhow, Result};
-use clap::Parser;
+use anyhow::Result;
 use lopdf::Document;
-use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
 
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-    input_file: String,
-    output_file: Option<String>,
-    #[arg(short, long)]
-    start: Option<u32>,
-    #[arg(short, long)]
-    end: Option<u32>,
-}
+mod cli;
+mod format;
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
+    let args = cli::parse()?;
 
-    let in_path = Path::new(&cli.input_file);
-    if in_path.extension().and_then(std::ffi::OsStr::to_str) != Some("pdf") {
-        return Err(anyhow!("Input file must be a PDF with a .pdf extension."));
-    }
-
-    let inpdf = &cli.input_file;
-    let out_path = cli
-        .output_file
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| in_path.with_extension("txt"));
-    let start_page_arg = cli.start;
-    let end_page_arg = cli.end;
-
-    let doc = Document::load(inpdf)?;
+    let doc = Document::load(&args.input)?;
     let pages = doc.get_pages();
-    let mut sorted_pages: Vec<u32> = pages.keys().cloned().collect();
-    sorted_pages.sort();
+    let page_numbers: Vec<u32> = pages.keys().cloned().collect();
 
-    let start_page = start_page_arg.unwrap_or(1);
-    let end_page = end_page_arg.unwrap_or(*sorted_pages.last().unwrap_or(&u32::MAX));
+    let start_page = args.start.unwrap_or(1);
+    let end_page = args
+        .end
+        .unwrap_or(*page_numbers.last().unwrap_or(&u32::MAX));
 
     println!("Starting extraction from page {}", start_page);
-    if let Some(end) = end_page_arg {
+    if let Some(end) = args.end {
         println!("Ending extraction at page {}", end);
     }
 
-    let page_numbers_to_extract: Vec<u32> = sorted_pages
+    let page_numbers_to_extract: Vec<u32> = page_numbers
         .into_iter()
         .filter(|&p| p >= start_page && p <= end_page)
         .collect();
@@ -56,48 +33,9 @@ fn main() -> Result<()> {
     }
 
     let all_text = doc.extract_text(&page_numbers_to_extract)?;
-    let cleaned_text = clean_text(&all_text);
+    let cleaned_text = format::clean_text(&all_text);
 
-    fs::write(&out_path, cleaned_text)?;
-    println!("Wrote {}", out_path.to_string_lossy());
-
+    fs::write(&args.output, cleaned_text)?;
+    println!("Wrote {}", args.output.to_string_lossy());
     Ok(())
-}
-
-fn clean_text(text: &str) -> String {
-    let mut replacements = HashMap::new();
-    replacements.insert('‘', '\'');
-    replacements.insert('’', '\'');
-    replacements.insert('‚', '\'');
-    replacements.insert('‛', '\'');
-    replacements.insert('ʼ', '\'');
-    replacements.insert('ʹ', '\'');
-    replacements.insert('ʻ', '\'');
-    replacements.insert('“', '"');
-    replacements.insert('”', '"');
-    replacements.insert('„', '"');
-    replacements.insert('‟', '"');
-    replacements.insert('ʺ', '"');
-    replacements.insert('«', '"');
-    replacements.insert('»', '"');
-    replacements.insert('–', '-');
-    replacements.insert('—', '-');
-    replacements.insert('―', '-');
-    replacements.insert('﹣', '-');
-    replacements.insert('－', '-');
-    replacements.insert('∕', '/');
-    replacements.insert('／', '/');
-    replacements.insert('⧸', '/');
-    replacements.insert('＼', '\\');
-
-    let text = text.replace("…", "...");
-
-    let processed_text: String = text
-        .chars()
-        .map(|c| replacements.get(&c).cloned().unwrap_or(c))
-        .filter(|&c| (c.is_ascii_graphic() || c.is_ascii_whitespace()) && c != '\u{000C}')
-        .collect();
-
-    let tokens: Vec<&str> = processed_text.split_whitespace().collect();
-    tokens.join("\n")
 }
