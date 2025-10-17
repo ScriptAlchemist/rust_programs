@@ -1,61 +1,42 @@
 use anyhow::Result;
+use clap::Parser;
 use lopdf::Document;
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    /// The PDF file to extract text from
+    input_file: String,
+
+    /// The file to write the extracted text to
+    output_file: Option<String>,
+
+    /// The page to start extraction from
+    #[arg(short, long)]
+    start: Option<u32>,
+
+    /// The page to end extraction at
+    #[arg(short, long)]
+    end: Option<u32>,
+}
+
 fn main() -> Result<()> {
-    let args: Vec<String> = env::args().collect();
-    let mut start_page_arg: Option<u32> = None;
-    let mut end_page_arg: Option<u32> = None;
-    let mut file_args: Vec<String> = Vec::new();
+    let cli = Cli::parse();
 
-    let mut i = 1;
-    while i < args.len() {
-        match args[i].as_str() {
-            "--start" => {
-                i += 1;
-                if i < args.len() {
-                    start_page_arg = args[i].parse().ok();
-                }
-            }
-            "--end" => {
-                i += 1;
-                if i < args.len() {
-                    end_page_arg = args[i].parse().ok();
-                }
-            }
-            _ => {
-                if !args[i].starts_with('-') {
-                    file_args.push(args[i].clone());
-                }
-            }
-        }
-        i += 1;
-    }
-
-    if file_args.is_empty() {
-        eprintln!(
-            "Usage: {} [--start <page>] [--end <page>] INPUT.pdf [OUTPUT.txt]",
-            args[0]
-        );
-        std::process::exit(1);
-    }
-
-    let inpdf = &file_args[0];
-    let out_path = if file_args.len() > 1 {
-        file_args[1].clone()
-    } else {
-        "gsOut.txt".to_string()
-    };
+    let inpdf = &cli.input_file;
+    let out_path = cli.output_file.unwrap_or_else(|| "out.txt".to_string());
+    let start_page_arg = cli.start;
+    let end_page_arg = cli.end;
 
     let doc = Document::load(inpdf)?;
     let pages = doc.get_pages();
     let mut sorted_pages: Vec<u32> = pages.keys().cloned().collect();
     sorted_pages.sort();
 
-    let start_page = start_page_arg.unwrap_or_else(|| 1);
-    let end_page = end_page_arg.unwrap_or(*sorted_pages.last().unwrap());
+    let start_page = start_page_arg.unwrap_or(1);
+    let end_page = end_page_arg.unwrap_or(*sorted_pages.last().unwrap_or(&u32::MAX));
 
     println!("Starting extraction from page {}", start_page);
     if let Some(end) = end_page_arg {
