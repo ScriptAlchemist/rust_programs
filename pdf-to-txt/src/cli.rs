@@ -28,10 +28,17 @@ pub fn parse() -> Result<ParsedArgs, anyhow::Error> {
     }
 
     let inpdf = std::path::PathBuf::from(&input.input_file);
-    let out_path = input
-        .output_file
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| in_path.with_extension("txt"));
+    let out_path = if let Some(of) = input.output_file {
+        std::path::PathBuf::from(of)
+    } else {
+        let stem = in_path
+            .file_stem()
+            .and_then(std::ffi::OsStr::to_str)
+            .unwrap_or("output");
+        std::env::current_dir()
+            .map_err(|e| anyhow!(e))?
+            .join(format!("{}.txt", stem))
+    };
     let start_page_arg = input.start;
     let end_page_arg = input.end;
 
