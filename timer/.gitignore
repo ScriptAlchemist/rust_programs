@@ -1,0 +1,16 @@
+# Rust build output. These files can include absolute local paths, debug
+# metadata, generated binaries, and other machine-specific build details.
+/target/
+
+# Local environment and secret material.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS/editor noise.
+.DS_Store
+*.swp
+*.swo

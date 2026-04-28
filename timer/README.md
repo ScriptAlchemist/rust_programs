@@ -102,15 +102,17 @@ timer --tmux -c cyan 1:30
 For background tmux launches, use `--quiet`:
 
 ```bash
-tmux run-shell -b 'timer --tmux --quiet --color green 25m'
+tmux run-shell -b 'timer --tmux --quiet --tmux-target "#{session_name}" --color green 25m'
 ```
 
-The timer stores its background process id in tmux option `@timer_pid`, so it can be canceled later:
+The timer stores its background process id in the current tmux session option `@timer_pid`, so it can be canceled later:
 
 ```bash
-pid="$(tmux show-option -qv @timer_pid)"
+pid="$(tmux show-option -qv -t "#{session_name}" @timer_pid)"
 kill -TERM "$pid"
 ```
+
+Each tmux session gets its own `status-right`, `@timer_status`, and `@timer_pid` state. That means you can run one timer in session `work` and another timer in session `personal` without them overwriting each other. The included tmux bindings pass `--tmux-target "#{session_name}"` for this reason.
 
 On normal completion, cancel, `SIGHUP`, `SIGTERM`, or `SIGINT`, the program restores the original `status-right`. It cannot clean up after `kill -9` or if the tmux server itself dies.
 
@@ -154,12 +156,12 @@ set -g status-interval 1
 set -g status-right-length 80
 
 bind-key T command-prompt -p "timer duration" \
-  "run-shell -b '/Users/justinbender/.cargo/bin/timer --tmux --quiet %%'"
+  "run-shell -b '/Users/justinbender/.cargo/bin/timer --tmux --quiet --tmux-target \"#{session_name}\" %%'"
 
 bind-key C-t command-prompt -p "timer duration,timer color" \
-  "run-shell -b '/Users/justinbender/.cargo/bin/timer --tmux --quiet --color %2 %1'"
+  "run-shell -b '/Users/justinbender/.cargo/bin/timer --tmux --quiet --tmux-target \"#{session_name}\" --color %2 %1'"
 
-bind-key X run-shell -b 'pid="$(tmux show-option -qv @timer_pid)"; if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then kill -TERM "$pid"; tmux display-message "Timer canceled"; else tmux display-message "No timer running"; fi'
+bind-key X run-shell -b 'pid="$(tmux show-option -qv -t "#{session_name}" @timer_pid)"; if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then kill -TERM "$pid"; tmux display-message "Timer canceled"; else tmux display-message "No timer running"; fi'
 ```
 
 ## Development

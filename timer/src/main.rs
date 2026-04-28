@@ -46,6 +46,7 @@ struct TimerConfig {
     color: Color,
     mode: TimerMode,
     quiet: bool,
+    tmux_target: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -85,7 +86,12 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let status = match config.mode {
         TimerMode::Terminal => run_timer(config.duration, config.color)?,
-        TimerMode::Tmux => run_tmux_timer(config.duration, config.color, config.quiet)?,
+        TimerMode::Tmux => run_tmux_timer(
+            config.duration,
+            config.color,
+            config.quiet,
+            config.tmux_target.as_deref(),
+        )?,
     };
 
     match status {
@@ -107,7 +113,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
 fn usage(binary: &str) -> String {
     format!(
-        "Usage: {binary} [options] <duration>\n\nOptions:\n  -c, --color <color>  Set the timer color (default: red)\n      --tmux           Show the timer in tmux status-right instead of full-screen UI\n      --quiet          Suppress terminal messages for background launches\n\nColors:\n  {COLOR_NAMES}\n\nExamples:\n  {binary} 25m\n  {binary} 1h30m --color green\n  {binary} --color blue 90s\n  {binary} -c cyan 1:30\n  {binary} --tmux --quiet --color green 25m"
+        "Usage: {binary} [options] <duration>\n\nOptions:\n  -c, --color <color>  Set the timer color (default: red)\n      --tmux           Show the timer in tmux status-right instead of full-screen UI\n      --quiet          Suppress terminal messages for background launches\n      --tmux-target <target>\n                       Scope tmux updates to a specific session target\n\nColors:\n  {COLOR_NAMES}\n\nExamples:\n  {binary} 25m\n  {binary} 1h30m --color green\n  {binary} --color blue 90s\n  {binary} -c cyan 1:30\n  {binary} --tmux --quiet --color green 25m"
     )
 }
 
@@ -120,6 +126,7 @@ fn parse_timer_config(args: &[&str]) -> Result<TimerConfig, String> {
     let mut color = Color::Red;
     let mut mode = TimerMode::Terminal;
     let mut quiet = false;
+    let mut tmux_target = None;
     let mut index = 0;
 
     while index < args.len() {
@@ -129,6 +136,19 @@ fn parse_timer_config(args: &[&str]) -> Result<TimerConfig, String> {
             }
             "--quiet" => {
                 quiet = true;
+            }
+            "--tmux-target" => {
+                index += 1;
+                let target = args
+                    .get(index)
+                    .ok_or_else(|| "missing target after --tmux-target".to_string())?;
+                tmux_target = Some(parse_tmux_target(target)?);
+            }
+            arg if arg.starts_with("--tmux-target=") => {
+                let target = arg
+                    .strip_prefix("--tmux-target=")
+                    .expect("prefix checked before stripping");
+                tmux_target = Some(parse_tmux_target(target)?);
             }
             "--color" | "-c" => {
                 index += 1;
@@ -166,7 +186,18 @@ fn parse_timer_config(args: &[&str]) -> Result<TimerConfig, String> {
         color,
         mode,
         quiet,
+        tmux_target,
     })
+}
+
+fn parse_tmux_target(input: &str) -> Result<String, String> {
+    let target = input.trim();
+
+    if target.is_empty() {
+        Err("tmux target cannot be empty".to_string())
+    } else {
+        Ok(target.to_string())
+    }
 }
 
 fn parse_color(input: &str) -> Result<Color, String> {
@@ -381,9 +412,10 @@ fn run_tmux_timer(
     total_duration: Duration,
     color: Color,
     quiet: bool,
+    tmux_target: Option<&str>,
 ) -> Result<TimerStatus, Box<dyn Error>> {
     let signals = ShutdownSignals::start()?;
-    let mut tmux = TmuxStatusSession::start(color)?;
+    let mut tmux = TmuxStatusSession::start(color, tmux_target)?;
     let mut raw_mode = match RawModeGuard::start() {
         Ok(raw_mode) => Some(raw_mode),
         Err(err) => {
@@ -603,32 +635,58 @@ impl Drop for TerminalSession {
 }
 
 struct TmuxStatusSession {
+    target_session: String,
     original_status_right: String,
     original_timer_option: Option<String>,
     restored: bool,
 }
 
 impl TmuxStatusSession {
-    fn start(color: Color) -> Result<Self, Box<dyn Error>> {
+    fn start(color: Color, target: Option<&str>) -> Result<Self, Box<dyn Error>> {
         if env::var_os("TMUX").is_none() {
             return Err("--tmux can only be used inside a tmux session".into());
         }
 
-        if let Some(pid) = tmux_capture_optional(&["show-option", "-qv", TMUX_TIMER_PID_OPTION])? {
+        let target_session = resolve_tmux_target(target)?;
+
+        if let Some(pid) = tmux_capture_optional(&[
+            "show-option",
+            "-qv",
+            "-t",
+            &target_session,
+            TMUX_TIMER_PID_OPTION,
+        ])? {
             if process_exists(&pid) {
-                return Err(format!("a tmux timer is already running with pid {pid}").into());
+                return Err(format!(
+                    "a tmux timer is already running in {target_session} with pid {pid}"
+                )
+                .into());
             }
         }
 
-        let original_status_right = tmux_capture(&["show-option", "-qv", "status-right"])?;
-        let original_timer_option =
-            tmux_capture_optional(&["show-option", "-qv", TMUX_TIMER_OPTION])?;
+        let original_status_right =
+            tmux_capture(&["show-option", "-qv", "-t", &target_session, "status-right"])?;
+        let original_timer_option = tmux_capture_optional(&[
+            "show-option",
+            "-qv",
+            "-t",
+            &target_session,
+            TMUX_TIMER_OPTION,
+        ])?;
         let status_right =
             append_tmux_status_segment(&original_status_right, &tmux_status_segment(color));
 
-        tmux_run(&["set-option", "-q", "status-right", &status_right])?;
+        tmux_run(&[
+            "set-option",
+            "-q",
+            "-t",
+            &target_session,
+            "status-right",
+            &status_right,
+        ])?;
 
         let session = Self {
+            target_session,
             original_status_right,
             original_timer_option,
             restored: false,
@@ -640,11 +698,25 @@ impl TmuxStatusSession {
     }
 
     fn set_timer_text(&self, text: &str) -> Result<(), Box<dyn Error>> {
-        tmux_run(&["set-option", "-q", TMUX_TIMER_OPTION, text])
+        tmux_run(&[
+            "set-option",
+            "-q",
+            "-t",
+            &self.target_session,
+            TMUX_TIMER_OPTION,
+            text,
+        ])
     }
 
     fn set_timer_pid(&self, pid: u32) -> Result<(), Box<dyn Error>> {
-        tmux_run(&["set-option", "-q", TMUX_TIMER_PID_OPTION, &pid.to_string()])
+        tmux_run(&[
+            "set-option",
+            "-q",
+            "-t",
+            &self.target_session,
+            TMUX_TIMER_PID_OPTION,
+            &pid.to_string(),
+        ])
     }
 
     fn restore(&mut self) -> Result<(), Box<dyn Error>> {
@@ -655,18 +727,39 @@ impl TmuxStatusSession {
         tmux_run(&[
             "set-option",
             "-q",
+            "-t",
+            &self.target_session,
             "status-right",
             &self.original_status_right,
         ])?;
 
         match &self.original_timer_option {
-            Some(value) => tmux_run(&["set-option", "-q", TMUX_TIMER_OPTION, value])?,
+            Some(value) => tmux_run(&[
+                "set-option",
+                "-q",
+                "-t",
+                &self.target_session,
+                TMUX_TIMER_OPTION,
+                value,
+            ])?,
             None => {
-                let _ = tmux_run(&["set-option", "-qu", TMUX_TIMER_OPTION]);
+                let _ = tmux_run(&[
+                    "set-option",
+                    "-qu",
+                    "-t",
+                    &self.target_session,
+                    TMUX_TIMER_OPTION,
+                ]);
             }
         }
 
-        let _ = tmux_run(&["set-option", "-qu", TMUX_TIMER_PID_OPTION]);
+        let _ = tmux_run(&[
+            "set-option",
+            "-qu",
+            "-t",
+            &self.target_session,
+            TMUX_TIMER_PID_OPTION,
+        ]);
 
         self.restored = true;
 
@@ -678,6 +771,30 @@ impl Drop for TmuxStatusSession {
     fn drop(&mut self) {
         let _ = self.restore();
     }
+}
+
+fn resolve_tmux_target(target: Option<&str>) -> Result<String, Box<dyn Error>> {
+    if let Some(target) = target {
+        return Ok(target.to_string());
+    }
+
+    if let Ok(target) = env::var("TIMER_TMUX_TARGET") {
+        let target = target.trim();
+        if !target.is_empty() {
+            return Ok(target.to_string());
+        }
+    }
+
+    if let Ok(pane) = env::var("TMUX_PANE") {
+        return tmux_capture(&["display-message", "-p", "-t", &pane, "#{session_id}"]);
+    }
+
+    tmux_capture(&["display-message", "-p", "#{session_id}"]).map_err(|err| {
+        format!(
+            "could not resolve tmux session target; launch from a tmux pane or pass --tmux-target: {err}"
+        )
+        .into()
+    })
 }
 
 fn append_tmux_status_segment(status_right: &str, segment: &str) -> String {
@@ -860,6 +977,7 @@ mod tests {
                 color: Color::Red,
                 mode: TimerMode::Terminal,
                 quiet: false,
+                tmux_target: None,
             }
         );
     }
@@ -873,6 +991,7 @@ mod tests {
                 color: Color::Green,
                 mode: TimerMode::Terminal,
                 quiet: false,
+                tmux_target: None,
             }
         );
         assert_eq!(
@@ -882,6 +1001,7 @@ mod tests {
                 color: Color::LightBlue,
                 mode: TimerMode::Terminal,
                 quiet: false,
+                tmux_target: None,
             }
         );
         assert_eq!(
@@ -891,6 +1011,7 @@ mod tests {
                 color: Color::Magenta,
                 mode: TimerMode::Terminal,
                 quiet: false,
+                tmux_target: None,
             }
         );
     }
@@ -904,6 +1025,7 @@ mod tests {
                 color: Color::Green,
                 mode: TimerMode::Tmux,
                 quiet: false,
+                tmux_target: None,
             }
         );
     }
@@ -911,12 +1033,13 @@ mod tests {
     #[test]
     fn parses_timer_config_with_quiet_mode() {
         assert_eq!(
-            parse_timer_config(&["--tmux", "--quiet", "25m"]).unwrap(),
+            parse_timer_config(&["--tmux", "--quiet", "--tmux-target", "work", "25m"]).unwrap(),
             TimerConfig {
                 duration: Duration::from_secs(1_500),
                 color: Color::Red,
                 mode: TimerMode::Tmux,
                 quiet: true,
+                tmux_target: Some("work".to_string()),
             }
         );
     }
@@ -928,6 +1051,7 @@ mod tests {
         assert!(parse_timer_config(&["25m", "--color"]).is_err());
         assert!(parse_timer_config(&["25m", "--wat"]).is_err());
         assert!(parse_timer_config(&["25m", "--color", "beige"]).is_err());
+        assert!(parse_timer_config(&["--tmux-target", "", "25m"]).is_err());
     }
 
     #[test]
